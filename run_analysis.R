@@ -22,21 +22,23 @@ run_analysis <- function() {
   
   # 3. Uses descriptive activity names to name the activities in the data set
   activities_names <- read.table("activity_labels.txt")
-  merge_active <- merge(merge_active, activities_names, by.y="V1")
+  #merge_active <- merge(merge_active, activities_names, by.y="V1")
+  for (i in activities_names$V1) {
+    merge_active$V1 <- sub(as.character(i), activities_names$V2[i], merge_active$V1)
+  }
   
   # 4. Appropriately labels the data set with descriptive variable names
   cname <- sapply(strsplit(features[used]," "), function(x){gsub("\\(\\)","",x[[2]])})
   cname <- make.names(cname)
   colnames(merge_data) <- cname
   merge_data <- tbl_df(merge_data)
-  merge_data$activity = as.factor(merge_active[,2])
+  merge_data$activity = as.factor(merge_active[,1])
   merge_data$subject = as.factor(merge_subject[,1])
   
   # 5. Creates a second, independent tidy data set with the average
   # of each variable for each activity and each subject
-  group_data <- group_by(merge_data, activity, subject)
+  group_data <- group_by(merge_data, subject, activity)
   average_group <- summarize_each(group_data, funs(mean))
   
   write.table(average_group,"analyzed_result.txt", row.names = FALSE)
-  average_group
 }
